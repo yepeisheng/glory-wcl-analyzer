@@ -187,7 +187,7 @@
               <v-btn @click="newFormula">
                 <v-icon left> mdi-plus </v-icon>添加组</v-btn
               >
-              <v-btn class="ml-2" @click="resetTable">
+              <v-btn class="ml-2" @click="resetFormula">
                 <v-icon left> mdi-refresh </v-icon>重置</v-btn
               >
             </v-col>
@@ -497,7 +497,7 @@ export default {
       if (this.editSubgroupMode === "new") {
         this.insertSubgroup({
           ...this.editSubgroupIdx,
-          subgroup: {
+          newSubgroup: {
             ...this.editSubgroup,
             max: parseInt(this.editSubgroup.max)
           }

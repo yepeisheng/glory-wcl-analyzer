@@ -310,7 +310,7 @@ const mutations = {
     );
   },
   resetTable(state) {
-    state.tables = defaultTables;
+    state.tables = defaultTables.slice();
     localStorage.setItem(
       "gloryWCLSetting-tables",
       JSON.stringify(state.tables)
@@ -331,14 +331,15 @@ const mutations = {
     );
   },
   resetFormula(state) {
-    state.formulas = defaultFormulas;
+    state.formulas = defaultFormulas.slice();
     localStorage.setItem(
       "gloryWCLSetting-formulas",
       JSON.stringify(state.formulas)
     );
   },
   insertSubgroup(state, { formulaIdx, newSubgroup }) {
-    state.formulas[formulaIdx].unshift(newSubgroup);
+    console.log(formulaIdx)
+    state.formulas[formulaIdx].subGroups.unshift(newSubgroup);
     localStorage.setItem(
       "gloryWCLSetting-formulas",
       JSON.stringify(state.formulas)
