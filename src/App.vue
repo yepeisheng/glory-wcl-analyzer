@@ -30,7 +30,7 @@
             <v-btn :disabled="loading" @click="fetchReport">Fetch</v-btn>
           </v-col>
         </v-row>
-        <template v-show="!openSetting" v-if="scores.length > 0">
+        <template v-if="!openSetting && scores.length > 0">
           <v-row>
             <v-tabs v-model="selectedClassIndex">
               <v-tabs-slider color="primary" />
