@@ -30,14 +30,24 @@
             <v-btn :disabled="loading" @click="fetchReport">Fetch</v-btn>
           </v-col>
         </v-row>
-        <v-row v-show="!openSetting">
-          <v-col class="col-6 offset-3">
-            <score-table
-              :scores="scores"
-              @openTable="openTablePanel"
-            ></score-table>
-          </v-col>
-        </v-row>
+        <template v-show="!openSetting" v-if="scores.length > 0">
+          <v-row>
+            <v-tabs v-model="selectedClassIndex">
+              <v-tabs-slider color="primary" />
+              <v-tab v-for="c in classes" :key="c.code">
+                <span :style="{ color: c.color }"> {{ c.display }} </span>
+              </v-tab>
+            </v-tabs>
+          </v-row>
+          <v-row>
+            <v-col>
+              <score-table
+                :scores="scores.find(s => s.classType === selectedClass).scores"
+                @openTable="openTablePanel"
+              ></score-table>
+            </v-col>
+          </v-row>
+        </template>
       </v-container>
     </v-main>
     <v-footer app>
@@ -63,13 +73,18 @@ import { mapState, mapMutations } from "vuex";
 import {
   fetchReport,
   fetchTable,
+  FIGHT_NAME,
   summaryEntries,
-  summaryForWorldBuffs
+  summaryForWorldBuffs,
+  TABLE_TYPE,
+  COLUMN
 } from "./apis";
-import { FORMULA_TYPE } from "./modules/config";
+import { FORMULA_TYPE, normalizeWeight } from "./constants/FormulaConstants";
 import Setting from "./Setting";
 import ScoreTable from "./ScoreTable";
 import WclTable from "./WclTable";
+import classes from "./constants/Classes";
+import { filterEntriesById } from "./constants/TableConstants";
 
 export default {
   name: "App",
@@ -97,32 +112,55 @@ export default {
       title: "Classic WCL Analyzer",
       footer: "Powered by To God be the Glory",
       reportId: "apz2cHtjXKBvYR8r",
+      selectedClassIndex: 0,
+      classes,
       scores: []
     };
   },
   computed: {
-    ...mapState("config", ["tables", "formulas"]),
-    ...mapState("report", ["friendlies", "fights", "tableEntries"])
+    ...mapState("config", ["tables", "allFormulas"]),
+    ...mapState("report", ["friendlies", "fights", "tableEntries"]),
+    selectedClass() {
+      return this.classes[this.selectedClassIndex].code;
+    }
   },
   watch: {},
   methods: {
-    ...mapMutations("report", ["setReport", "setTableEntries"]),
-    openTablePanel(tableId) {
+    ...mapMutations("report", [
+      "setReport",
+      "setTableEntries",
+      "setFriendlies"
+    ]),
+    openTablePanel(tableEntries) {
       this.openTable = true;
-      this.table = this.tableEntries[tableId];
+      this.table = tableEntries;
     },
     async fetchReport() {
       this.loading = true;
       const report = await fetchReport(this.reportId);
       this.setReport(report);
+      const protectionWarriors = await fetchTable(
+        this.reportId,
+        TABLE_TYPE.BUFFS,
+        this.fights[FIGHT_NAME.OVERALL].start_time,
+        this.fights[FIGHT_NAME.OVERALL].end_time,
+        COLUMN.BUFF_TOTAL,
+        { abilityId: "71" }
+      );
+      this.setFriendlies(protectionWarriors);
       const tableSet = new Set(
-        [].concat(...this.formulas.map(g => g.subGroups)).map(sb => sb.tableId)
+        [].concat(
+          ...[]
+            .concat(
+              ...[]
+                .concat(...this.allFormulas.map(f => f.formulas))
+                .map(g => g.subGroups)
+            )
+            .map(sb => sb.tableIds.map(t => t.id))
+        )
       );
       await this.fetchTables(Array.from(tableSet));
-      await this.calcScores(
-        this.friendlies.filter(f => f.type === "Warrior"),
-        this.tableEntries
-      );
+      await this.calcScores();
       this.loading = false;
     },
     async fetchTables(tableIds) {
@@ -166,70 +204,125 @@ export default {
       );
       this.setTableEntries(tableEntries);
     },
-    async calcScores(friendlies, tableEntries) {
-      this.scores = [];
-      const groupsTotalWeight = this.formulas.reduce(
-        (total, group) => (group.weight > 0 ? total + group.weight : total),
-        0
-      );
-      const weightNormalized = this.formulas.map(g => {
-        const subGroupsTotalWeight = g.subGroups.reduce(
-          (total, sub) => (sub.weight > 0 ? total + sub.weight : total),
-          0
-        );
-        return {
-          ...g,
-          weight: g.weight / groupsTotalWeight,
-          subGroups: g.subGroups.map(sub => ({
-            ...sub,
-            weight: sub.weight / subGroupsTotalWeight
-          }))
-        };
-      });
-      const scores = friendlies.map(f => {
-        const calGroup = weightNormalized.map(group => {
-          const calcSubGroups = group.subGroups.map(sub => ({
-            ...sub,
-            tableName: tableEntries[sub.tableId].tableName,
-            score: (() => {
-              const table = tableEntries[sub.tableId];
-              const friendEntry = table.entries.find(e => e.id === f.id);
-              const friendTotal =
-                friendEntry === undefined ? 0 : friendEntry.total;
-              switch (sub.type) {
-                case FORMULA_TYPE.RELATIVE_TO_MAX:
-                  return friendTotal / sub.max;
-                case FORMULA_TYPE.RELATIVE_TO_TOP:
-                  return friendTotal / table.TOP;
-                case FORMULA_TYPE.RELATIVE_TO_AVG:
-                  return friendTotal / table.AVG;
-                case FORMULA_TYPE.RELATIVE_TO_TOTAL:
-                  return friendTotal / table.TOTAL;
-                case FORMULA_TYPE.UNITARY:
-                  return friendTotal > 0 ? 1 : 0;
-              }
-            })()
-          }));
+    async calcScores() {
+      this.scores = this.allFormulas.map(formulasForClass => {
+        const classType = formulasForClass.classType;
+        const formulas = formulasForClass.formulas;
 
+        const weightNormalized = normalizeWeight(formulas);
+        const filteredFriendlies = this.friendlies.filter(
+          f => f.type === classType
+        );
+        const filteredTable = filterEntriesById(
+          this.tableEntries,
+          new Set(filteredFriendlies.map(f => f.id))
+        );
+        const tableCalculated = weightNormalized.map(group => ({
+          ...group,
+          subGroups: group.subGroups.map(sub => {
+            const summedTable = {};
+            for (let i = 0; i < sub.tableIds.length; i++) {
+              const tableConfig = sub.tableIds[i];
+              const tableEntries = filteredTable[tableConfig.id].entries;
+              tableEntries.reduce((out, e) => {
+                if (out[e.id] === undefined) {
+                  out[e.id] = e;
+                  out[e.id]["total"] = e["total"] * tableConfig["amplifier"];
+                } else {
+                  out[e.id]["total"] =
+                    out[e.id]["total"] + e["total"] * tableConfig["amplifier"];
+                }
+                return out;
+              }, summedTable);
+            }
+            const subgroupTableEntries = Object.values(summedTable).sort(
+              (e1, e2) => e2.total - e1.total
+            );
+            const tableName = sub.tableIds
+              .map(
+                t =>
+                  `${
+                    t.amplifier !== undefined ? "(" + t.amplifier + ")  x" : ""
+                  }${this.tables.find(table => table.id === t.id).displayName}`
+              )
+              .join(" + ");
+            const TOTAL = subgroupTableEntries
+              .map(e => e.total)
+              .reduce((e1, e2) => e1 + e2, 0);
+            const AVG = TOTAL / subgroupTableEntries.entries.length;
+            const TOP = subgroupTableEntries
+              .map(e => e.total)
+              .reduce((e1, e2) => (e2 > e1 ? e2 : e1), 0);
+            return {
+              ...sub,
+              subgroupTable: {
+                entries: subgroupTableEntries,
+                tableName,
+                TOTAL,
+                AVG,
+                TOP
+              }
+            };
+          })
+        }));
+
+        const scores = filteredFriendlies.map(f => {
+          const calGroup = tableCalculated.map(group => {
+            const calcSubGroups = group.subGroups.map(sub => ({
+              ...sub,
+              tableName: sub.subgroupTable.tableName,
+              score: (() => {
+                const table = sub.subgroupTable;
+                const friendEntry = table.entries.find(e => e.id === f.id);
+                const friendTotal =
+                  friendEntry === undefined ? 0 : friendEntry.total;
+                let score = 0;
+                switch (sub.type) {
+                  case FORMULA_TYPE.RELATIVE_TO_MAX:
+                    score = Math.min(friendTotal, sub.max) / sub.max;
+                    break;
+                  case FORMULA_TYPE.RELATIVE_TO_TOP:
+                    score = friendTotal / table.TOP;
+                    break;
+                  case FORMULA_TYPE.RELATIVE_TO_AVG:
+                    score = friendTotal / table.AVG;
+                    break;
+                  case FORMULA_TYPE.RELATIVE_TO_TOTAL:
+                    score = friendTotal / table.TOTAL;
+                    break;
+                  case FORMULA_TYPE.UNITARY:
+                    score = friendTotal > 0 ? 1 : 0;
+                    break;
+                }
+                return sub.reverse ? 1 - score : score;
+              })()
+            }));
+
+            return {
+              ...group,
+              score: calcSubGroups.reduce(
+                (score, sub) => score + sub.weight * sub.score,
+                0
+              ),
+              subGroups: calcSubGroups
+            };
+          });
           return {
-            ...group,
-            score: calcSubGroups.reduce(
-              (score, sub) => score + sub.weight * sub.score,
+            ...f,
+            totalScore: calGroup.reduce(
+              (total, group) => total + group.weight * group.score,
               0
             ),
-            subGroups: calcSubGroups
+            detailScore: calGroup
           };
         });
+        scores.sort((s1, s2) => s2.totalScore - s1.totalScore);
+
         return {
-          ...f,
-          totalScore: calGroup.reduce(
-            (total, group) => total + group.weight * group.score,
-            0
-          ),
-          detailScore: calGroup
+          classType,
+          scores
         };
       });
-      this.scores = scores.sort((s1, s2) => s2.totalScore - s1.totalScore);
     }
   }
 };
