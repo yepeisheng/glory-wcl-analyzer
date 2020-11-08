@@ -18,8 +18,7 @@
         hide-default-footer
       />
     </template>
-    <!--
-    <v-list width="100%">
+    <v-list width="100%" class="mt-5">
       <v-list-group v-for="score in scores" :key="score.id">
         <template v-slot:activator>
           <v-list-item-content>
@@ -60,16 +59,27 @@
         </v-list-group>
       </v-list-group>
     </v-list>
-    -->
   </div>
 </template>
 <script>
-import { VDataTable } from "vuetify/lib";
+import {
+  VDataTable,
+  VList,
+  VListGroup,
+  VListItem,
+  VListItemContent,
+  VListItemTitle
+} from "vuetify/lib";
 import XLSX from "xlsx";
 export default {
   name: "ScoreTable",
   components: {
-    VDataTable
+    VDataTable,
+    VList,
+    VListGroup,
+    VListItem,
+    VListItemContent,
+    VListItemTitle
   },
   props: {
     scores: {
