@@ -43,6 +43,8 @@
             <v-col>
               <score-table
                 :scores="scores.find(s => s.classType === selectedClass).scores"
+                :report-id="reportId"
+                :class-type="selectedClass"
                 @openTable="openTablePanel"
               ></score-table>
             </v-col>

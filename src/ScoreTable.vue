@@ -75,6 +75,14 @@ export default {
     scores: {
       type: Array,
       required: true
+    },
+    reportId: {
+      type: String,
+      required: true
+    },
+    classType: {
+      type: String,
+      required: true
     }
   },
   computed: {
@@ -129,7 +137,7 @@ export default {
   },
   methods: {
     download() {
-      const filename = "apz2cHtjXKBvYR8r.xlsx";
+      const filename = `${this.reportId}.xlsx`;
 
       const headersData = this.headers.map(h => h.text);
 
@@ -188,7 +196,7 @@ export default {
 
       console.log(ws);
       /* add worksheet to workbook */
-      XLSX.utils.book_append_sheet(wb, ws, "Warrior");
+      XLSX.utils.book_append_sheet(wb, ws, this.classType);
       /* write workbook */
       XLSX.writeFile(wb, filename);
     }
