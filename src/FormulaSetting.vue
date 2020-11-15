@@ -56,9 +56,16 @@
             :items="typeSelect"
           />
           <v-text-field
+            v-if="editSubgroup.type === FORMULA_TYPE.RELATIVE_TO_MAX"
             v-model="editSubgroup.max"
-            label="预设值"
+            label="预设最大值"
             :rules="[() => !isNaN(parseInt(editSubgroup.max)) || '必须为整数']"
+          />
+          <v-text-field
+            v-if="editSubgroup.type === FORMULA_TYPE.RELATIVE_TO_MIN"
+            v-model="editSubgroup.min"
+            label="预设最小值"
+            :rules="[() => !isNaN(parseInt(editSubgroup.min)) || '必须为整数']"
           />
           <v-switch v-model="editSubgroup.reverse" label="反向计分" />
         </v-card-text>
@@ -288,6 +295,7 @@ export default {
   },
   data: () => ({
     classes,
+    FORMULA_TYPE,
     selectedClassIndex: 0,
     formulaEditor: false,
     subgroupEditor: false,

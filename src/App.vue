@@ -113,7 +113,7 @@ export default {
       loading: false,
       title: "Classic WCL Analyzer",
       footer: "Powered by To God be the Glory",
-      reportId: "apz2cHtjXKBvYR8r",
+      reportId: "pKCJrHR8BfX3N1hk",
       selectedClassIndex: 0,
       classes,
       scores: []
@@ -192,7 +192,8 @@ export default {
               tableId,
               tableName: table.displayName,
               entries:
-                tableId === "WORLD-BUFFS"
+                tableId === "WORLD-BUFFS-MELEE" ||
+                tableId === "WORLD-BUFFS-RANGE"
                   ? summaryForWorldBuffs(allData)
                   : summaryEntries(allData)
             };
@@ -284,22 +285,32 @@ export default {
                 const friendTotal =
                   friendEntry === undefined ? 0 : friendEntry.total;
                 let score = 0;
-                switch (sub.type) {
-                  case FORMULA_TYPE.RELATIVE_TO_MAX:
-                    score = Math.min(friendTotal, sub.max) / sub.max;
-                    break;
-                  case FORMULA_TYPE.RELATIVE_TO_TOP:
-                    score = friendTotal / table.TOP;
-                    break;
-                  case FORMULA_TYPE.RELATIVE_TO_AVG:
-                    score = friendTotal / table.AVG;
-                    break;
-                  case FORMULA_TYPE.RELATIVE_TO_TOTAL:
-                    score = friendTotal / table.TOTAL;
-                    break;
-                  case FORMULA_TYPE.UNITARY:
-                    score = friendTotal > 0 ? 1 : 0;
-                    break;
+                if (
+                  sub.checkShamanInRangeTeam &&
+                  friendTotal < sub.inRangeTeamThreshold
+                ) {
+                  score = 1;
+                } else {
+                  switch (sub.type) {
+                    case FORMULA_TYPE.RELATIVE_TO_MAX:
+                      score = Math.min(friendTotal, sub.max) / sub.max;
+                      break;
+                    case FORMULA_TYPE.RELATIVE_TO_MIN:
+                      score = friendTotal >= sub.min ? 1 : 0;
+                      break;
+                    case FORMULA_TYPE.RELATIVE_TO_TOP:
+                      score = friendTotal / table.TOP;
+                      break;
+                    case FORMULA_TYPE.RELATIVE_TO_AVG:
+                      score = friendTotal / table.AVG;
+                      break;
+                    case FORMULA_TYPE.RELATIVE_TO_TOTAL:
+                      score = friendTotal / table.TOTAL;
+                      break;
+                    case FORMULA_TYPE.UNITARY:
+                      score = friendTotal > 0 ? 1 : 0;
+                      break;
+                  }
                 }
                 return sub.reverse ? 1 - score : score;
               })()
