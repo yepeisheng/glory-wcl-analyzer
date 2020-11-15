@@ -13,7 +13,7 @@ const mutations = {
   setFriendlies(state, protectionWarriors) {
     const protectionsIds = new Set(
       protectionWarriors
-        .sort((e1, e2) => e2["totalUptime"] - e1["totalUptime"])
+        .sort((e1, e2) => e2["total"] - e1["total"])
         .splice(0, 3)
         .map(e => e["id"])
     );

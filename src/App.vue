@@ -143,11 +143,11 @@ export default {
       this.setReport(report);
       const protectionWarriors = await fetchTable(
         this.reportId,
-        TABLE_TYPE.BUFFS,
+        TABLE_TYPE.DAMAGE_TAKEN,
         this.fights[FIGHT_NAME.OVERALL].start_time,
         this.fights[FIGHT_NAME.OVERALL].end_time,
-        COLUMN.BUFF_TOTAL,
-        { abilityId: "71" }
+        COLUMN.TOTAL,
+        { abilityId: "1" }
       );
       this.setFriendlies(protectionWarriors);
       const tableSet = new Set(
