@@ -126,13 +126,18 @@ export default {
       return this.classes[this.selectedClassIndex].code;
     }
   },
-  watch: {},
+  watch: {
+    openSetting() {
+      this.save();
+    }
+  },
   methods: {
     ...mapMutations("report", [
       "setReport",
       "setTableEntries",
       "setFriendlies"
     ]),
+    ...mapMutations("config", ["save"]),
     openTablePanel(tableEntries) {
       this.openTable = true;
       this.table = tableEntries;

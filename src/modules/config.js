@@ -16,6 +16,16 @@ const getters = {};
 const actions = {};
 
 const mutations = {
+  save(state) {
+    localStorage.setItem(
+      "gloryWCLSetting-tables",
+      JSON.stringify(state.tables)
+    );
+    localStorage.setItem(
+      "gloryWCLSetting-formulas",
+      JSON.stringify(state.allFormulas)
+    );
+  },
   updateTable(state, table) {
     const oldTableIndex = state.tables.findIndex(t => t.id === table.id);
     Vue.set(state.tables, oldTableIndex, table);
