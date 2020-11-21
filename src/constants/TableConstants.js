@@ -32,6 +32,26 @@ export const defaultTables = [
     customQuery: ""
   },
   {
+    id: "27-BUGS-MAGE",
+    predefined: true,
+    displayName: "27虫法师无敌",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.BEFORE_THREE,
+    column: COLUMN.TOTAL,
+    abilityIds: [3169],
+    customQuery: ""
+  },
+  {
+    id: "DETECT-MAGIC",
+    predefined: true,
+    displayName: "门口魔法侦测",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.BEFORE_ONE,
+    column: COLUMN.TOTAL,
+    abilityIds: [2855],
+    customQuery: ""
+  },
+  {
     id: "27-BUGS-NAIL",
     predefined: true,
     displayName: "通道钉子",
@@ -83,7 +103,7 @@ export const defaultTables = [
     tableName: TABLE_TYPE.CASTS,
     fights: FIGHT_NAME.OVERALL,
     column: COLUMN.TOTAL,
-    abilityIds: [10614]
+    abilityIds: [10614, 25359]
   },
   {
     id: "BOSS-ONE-TOTEM",
@@ -126,9 +146,9 @@ export const defaultTables = [
     id: "BEE-ROOM-POTION",
     predefined: true,
     displayName: "蜜蜂房自由",
-    tableName: TABLE_TYPE.CASTS,
+    tableName: TABLE_TYPE.BUFFS,
     fights: FIGHT_NAME.BEFORE_SIX,
-    column: COLUMN.TOTAL,
+    column: COLUMN.BUFF_TOTAL,
     abilityIds: [6615],
     customQuery: ""
   },
@@ -300,6 +320,84 @@ export const defaultTables = [
     column: COLUMN.TOTAL,
     abilityIds: [12328, -1719],
     customQuery: ""
+  },
+  {
+    id: "holy-nova",
+    predefined: true,
+    displayName: "全程神圣新星",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.OVERALL,
+    column: COLUMN.TOTAL,
+    abilityIds: [27801],
+    customQuery: ""
+  },
+  {
+    id: "vis-shoot",
+    predefined: true,
+    displayName: "维希度斯魔杖",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.FIVE,
+    column: COLUMN.TOTAL,
+    abilityIds: [5019],
+    customQuery: ""
+  },
+  {
+    id: "DAMAGE-MIND-SLAYER",
+    predefined: true,
+    displayName: "战灵者伤害",
+    tableName: TABLE_TYPE.DAMAGE,
+    fights: FIGHT_NAME.OVERALL,
+    column: COLUMN.TOTAL,
+    abilityIds: [],
+    customQuery: "target=209"
+  },
+  {
+    id: "DAMAGE-CHAMPION",
+    predefined: true,
+    displayName: "勇士伤害",
+    tableName: TABLE_TYPE.DAMAGE,
+    fights: FIGHT_NAME.OVERALL,
+    column: COLUMN.TOTAL,
+    abilityIds: [],
+    customQuery: "target=213"
+  },
+  {
+    id: "VIS-ICY-BOLT",
+    predefined: true,
+    displayName: "小软冰箭",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.FIVE,
+    column: COLUMN.TOTAL,
+    abilityIds: [116]
+  },
+  {
+    id: "FAERIE-FIRE",
+    predefined: true,
+    displayName: "精灵之火",
+    tableName: TABLE_TYPE.DEBUFFS,
+    fights: FIGHT_NAME.OVERALL,
+    abilityIds: [9907],
+    column: COLUMN.BUFF_UPTIME,
+    customQuery: "hostility=1"
+  },
+  {
+    id: "WARLOCK-CURSE",
+    predefined: true,
+    displayName: "术士诅咒",
+    tableName: TABLE_TYPE.DEBUFFS,
+    fights: FIGHT_NAME.OVERALL,
+    abilityIds: [11717, 11722, 11708],
+    column: COLUMN.BUFF_UPTIME,
+    customQuery: "hostility=1"
+  },
+  {
+    id: "IMPROVED-EXPOSE-ARMOR",
+    predefined: true,
+    displayName: "盗贼破甲",
+    tableName: TABLE_TYPE.CASTS,
+    fights: FIGHT_NAME.OVERALL,
+    column: COLUMN.TOTAL,
+    abilityIds: [11198]
   }
 ];
 

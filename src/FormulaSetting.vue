@@ -77,12 +77,20 @@
       </v-card>
     </v-dialog>
     <v-row>
-      <v-tabs v-model="selectedClassIndex">
-        <v-tabs-slider color="primary" />
-        <v-tab v-for="c in classes" :key="c.code">
-          <span :style="{ color: c.color }"> {{ c.display }} </span>
-        </v-tab>
-      </v-tabs>
+      <v-col class="col-11">
+        <v-tabs v-model="selectedClassIndex">
+          <v-tabs-slider color="primary" />
+          <v-tab v-for="c in classes" :key="c.code">
+            <span :style="{ color: c.color }"> {{ c.display }} </span>
+          </v-tab>
+        </v-tabs>
+      </v-col>
+      <v-col class="col-1 d-flex align-center justify-end">
+        <v-btn small @click="downloadFormulas">
+          <v-icon>mdi-download</v-icon>
+          XLSX
+        </v-btn>
+      </v-col>
     </v-row>
     <v-row>
       <v-col>
@@ -268,9 +276,13 @@ import {
   VTab,
   VSpacer
 } from "vuetify/lib";
-import { FORMULA_TYPE, FORMULA_TYPE_TEXT } from "./constants/FormulaConstants";
+import {
+  FORMULA_TYPE,
+  FORMULA_TYPE_TEXT
+} from "./constants/formulas/FormulaConstants";
 import { mapMutations, mapState } from "vuex";
 import classes from "./constants/Classes";
+import XLSX from "xlsx";
 export default {
   name: "FormulaSetting",
   comments: {
@@ -296,7 +308,7 @@ export default {
   data: () => ({
     classes,
     FORMULA_TYPE,
-    selectedClassIndex: 0,
+    selectedClassIndex: 4,
     formulaEditor: false,
     subgroupEditor: false,
     typeSelect: Object.values(FORMULA_TYPE).map(v => ({
@@ -412,6 +424,44 @@ export default {
         });
       }
       this.subgroupEditor = false;
+    },
+    downloadFormulas() {
+      const filename = `哥老瑞考核公式.xlsx`;
+
+      const sheets = this.allFormulas.map(formulasForClass => {
+        const c = classes.find(c => c.code === formulasForClass.classType);
+        const groups = formulasForClass.formulas.map(group => {
+          const groupHeader = [`${group.weight * 100}%`, group.displayName];
+          const subgroups = group.subGroups.map(subgroup => {
+            const subgroupName = subgroup.tableIds
+              .map(
+                t =>
+                  `${
+                    t.amplifier !== undefined ? "(" + t.amplifier + ")  x" : ""
+                  }${this.tables.find(table => table.id === t.id).displayName}`
+              )
+              .join(" + ");
+            return ["", `${subgroup.weight * 100}%`, subgroupName];
+          });
+          return [groupHeader].concat(subgroups);
+        });
+        console.log(groups);
+        return {
+          sheetName: c.display,
+          sheet: XLSX.utils.aoa_to_sheet([].concat(...groups))
+        };
+      });
+
+      const wb = XLSX.utils.book_new();
+      for (let i = 0; i < sheets.length; i++) {
+        console.log(sheets[i]);
+        XLSX.utils.book_append_sheet(
+          wb,
+          sheets[i]["sheet"],
+          sheets[i]["sheetName"]
+        );
+      }
+      XLSX.writeFile(wb, filename);
     }
   }
 };

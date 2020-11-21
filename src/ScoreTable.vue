@@ -4,7 +4,7 @@
       <v-col>
         <v-btn small @click="download">
           <v-icon>mdi-download</v-icon>
-          XLXS
+          XLSX
         </v-btn>
       </v-col>
     </v-row>
@@ -204,7 +204,6 @@ export default {
         });
       });
 
-      console.log(ws);
       /* add worksheet to workbook */
       XLSX.utils.book_append_sheet(wb, ws, this.classType);
       /* write workbook */

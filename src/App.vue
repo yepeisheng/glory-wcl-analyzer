@@ -75,13 +75,18 @@ import { mapState, mapMutations } from "vuex";
 import {
   fetchReport,
   fetchTable,
+  fetchTable_ORIGIN,
   FIGHT_NAME,
   summaryEntries,
+  summaryForDebuffs,
   summaryForWorldBuffs,
   TABLE_TYPE,
   COLUMN
 } from "./apis";
-import { FORMULA_TYPE, normalizeWeight } from "./constants/FormulaConstants";
+import {
+  FORMULA_TYPE,
+  normalizeWeight
+} from "./constants/formulas/FormulaConstants";
 import Setting from "./Setting";
 import ScoreTable from "./ScoreTable";
 import WclTable from "./WclTable";
@@ -113,7 +118,7 @@ export default {
       loading: false,
       title: "Classic WCL Analyzer",
       footer: "Powered by To God be the Glory",
-      reportId: "pKCJrHR8BfX3N1hk",
+      reportId: "AKpLva4YtC6ndmFx",
       selectedClassIndex: 0,
       classes,
       scores: []
@@ -121,14 +126,19 @@ export default {
   },
   computed: {
     ...mapState("config", ["tables", "allFormulas"]),
-    ...mapState("report", ["friendlies", "fights", "tableEntries"]),
+    ...mapState("report", [
+      "friendlies",
+      "fights",
+      "tableEntries",
+      "rawReport"
+    ]),
     selectedClass() {
       return this.classes[this.selectedClassIndex].code;
     }
   },
   watch: {
     openSetting() {
-      this.save();
+      // this.save();
     }
   },
   methods: {
@@ -146,6 +156,7 @@ export default {
       this.loading = true;
       const report = await fetchReport(this.reportId);
       this.setReport(report);
+
       const protectionWarriors = await fetchTable(
         this.reportId,
         TABLE_TYPE.DAMAGE_TAKEN,
@@ -154,7 +165,40 @@ export default {
         COLUMN.TOTAL,
         { abilityId: "1" }
       );
-      this.setFriendlies(protectionWarriors);
+
+      const recklessCurse = await fetchTable(
+        this.reportId,
+        TABLE_TYPE.CASTS,
+        this.fights[FIGHT_NAME.OVERALL].start_time,
+        this.fights[FIGHT_NAME.OVERALL].end_time,
+        COLUMN.TOTAL,
+        { abilityId: "11717" }
+      );
+
+      const weaknessCurse = await fetchTable(
+        this.reportId,
+        TABLE_TYPE.CASTS,
+        this.fights[FIGHT_NAME.OVERALL].start_time,
+        this.fights[FIGHT_NAME.OVERALL].end_time,
+        COLUMN.TOTAL,
+        { abilityId: "11708" }
+      );
+
+      const elementalCurse = await fetchTable(
+        this.reportId,
+        TABLE_TYPE.CASTS,
+        this.fights[FIGHT_NAME.OVERALL].start_time,
+        this.fights[FIGHT_NAME.OVERALL].end_time,
+        COLUMN.TOTAL,
+        { abilityId: "11722" }
+      );
+
+      this.setFriendlies({
+        protectionWarriors,
+        recklessCurse,
+        elementalCurse,
+        weaknessCurse
+      });
       const tableSet = new Set(
         [].concat(
           ...[]
@@ -195,6 +239,12 @@ export default {
                 tableId === "WORLD-BUFFS-MELEE" ||
                 tableId === "WORLD-BUFFS-RANGE"
                   ? summaryForWorldBuffs(allData)
+                  : table.tableName === TABLE_TYPE.DEBUFFS
+                  ? summaryForDebuffs(
+                      table.abilityIds,
+                      allData,
+                      this.rawReport["fights"]
+                    )
                   : summaryEntries(allData)
             };
           } else {
@@ -231,7 +281,10 @@ export default {
             const summedTable = {};
             for (let i = 0; i < sub.tableIds.length; i++) {
               const tableConfig = sub.tableIds[i];
-              const tableEntries = filteredTable[tableConfig.id].entries;
+              const tableEntries =
+                sub.specialFormula === undefined
+                  ? filteredTable[tableConfig.id].entries
+                  : this.tableEntries[tableConfig.id].entries;
               tableEntries.reduce((out, e) => {
                 if (out[e.id] === undefined) {
                   out[e.id] = e;
@@ -280,42 +333,65 @@ export default {
               ...sub,
               tableName: sub.subgroupTable.tableName,
               score: (() => {
-                const table = sub.subgroupTable;
-                const friendEntry = table.entries.find(e => e.id === f.id);
-                const friendTotal =
-                  friendEntry === undefined ? 0 : friendEntry.total;
-                let score = 0;
-                if (
-                  sub.checkShamanInRangeTeam &&
-                  friendTotal < sub.inRangeTeamThreshold
-                ) {
-                  score = 1;
-                } else {
-                  switch (sub.type) {
-                    case FORMULA_TYPE.RELATIVE_TO_MAX:
-                      score = Math.min(friendTotal, sub.max) / sub.max;
-                      break;
-                    case FORMULA_TYPE.RELATIVE_TO_MIN:
-                      score = friendTotal >= sub.min ? 1 : 0;
-                      break;
-                    case FORMULA_TYPE.RELATIVE_TO_TOP:
-                      score = friendTotal / table.TOP;
-                      break;
-                    case FORMULA_TYPE.RELATIVE_TO_AVG:
-                      score = friendTotal / table.AVG;
-                      break;
-                    case FORMULA_TYPE.RELATIVE_TO_TOTAL:
-                      score = friendTotal / table.TOTAL;
-                      break;
-                    case FORMULA_TYPE.UNITARY:
-                      score = friendTotal > 0 ? 1 : 0;
-                      break;
+                if (sub.specialFormula !== undefined) {
+                  const table = sub.subgroupTable;
+                  const debuffIds = [];
+                  if (f.isRecklessCurseWarlock) {
+                    debuffIds.push(11717);
                   }
+                  if (f.isElementalCurseWarlock) {
+                    debuffIds.push(11722);
+                  }
+                  if (f.isWeaknessCurseWarlock) {
+                    debuffIds.push(11708);
+                  }
+                  if (f.isFaerieFire) {
+                    debuffIds.push(9907);
+                  }
+                  const debuffIdSet = new Set(debuffIds);
+                  const debuffTotal = table.entries
+                    .filter(e => debuffIdSet.has(e.id))
+                    .map(e => e.total)
+                    .reduce((t1, t2) => t1 + t2, 0);
+                  const score = debuffTotal;
+                  return score;
+                } else {
+                  const table = sub.subgroupTable;
+                  const friendEntry = table.entries.find(e => e.id === f.id);
+                  const friendTotal =
+                    friendEntry === undefined ? 0 : friendEntry.total;
+                  let score = 0;
+                  if (
+                    sub.checkShamanInRangeTeam &&
+                    friendTotal < sub.inRangeTeamThreshold
+                  ) {
+                    score = 0.5;
+                  } else {
+                    switch (sub.type) {
+                      case FORMULA_TYPE.RELATIVE_TO_MAX:
+                        score = Math.min(friendTotal, sub.max) / sub.max;
+                        break;
+                      case FORMULA_TYPE.RELATIVE_TO_MIN:
+                        score = friendTotal >= sub.min ? 1 : 0;
+                        break;
+                      case FORMULA_TYPE.RELATIVE_TO_TOP:
+                        score = friendTotal / table.TOP;
+                        break;
+                      case FORMULA_TYPE.RELATIVE_TO_AVG:
+                        score = friendTotal / table.AVG;
+                        break;
+                      case FORMULA_TYPE.RELATIVE_TO_TOTAL:
+                        score = friendTotal / table.TOTAL;
+                        break;
+                      case FORMULA_TYPE.UNITARY:
+                        score = friendTotal > 0 ? 1 : 0;
+                        break;
+                    }
+                  }
+                  return sub.reverse ? 1 - score : score;
                 }
-                return sub.reverse ? 1 - score : score;
               })()
             }));
-
             return {
               ...group,
               score: calcSubGroups.reduce(

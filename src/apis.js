@@ -40,7 +40,8 @@ export const FIGHT_NAME = {
 export const COLUMN = {
   TOTAL: "total",
   HIT: "hitCount",
-  BUFF_TOTAL: "totalUses"
+  BUFF_TOTAL: "totalUses",
+  BUFF_UPTIME: "totalUptime"
 };
 
 export const COLUMN_TEXT = {
@@ -73,10 +74,37 @@ export async function fetchTable(
     `${wcl}/report/tables/${tableType}/${reportId}?start=${startTime}&end=${endTime}&${extraQuery}`
   );
   const data = await res.json();
+
+  if (tableType === TABLE_TYPE.DEBUFFS) {
+    return data;
+  }
+
   return (tableType === TABLE_TYPE.BUFFS
     ? data["auras"]
     : data["entries"]
   ).map(e => ({ ...e, total: e[column] }));
+}
+
+export async function fetchTable_ORIGIN(
+  reportId,
+  tableType,
+  startTime,
+  endTime,
+  column,
+  options
+) {
+  let extraQuery = fixedQueries;
+  if (options["abilityId"]) {
+    extraQuery = `${extraQuery}&abilityid=${options["abilityId"]}`;
+  }
+  if (options["customQuery"]) {
+    extraQuery = `${extraQuery}&${options["customQuery"]}`;
+  }
+  const res = await fetch(
+    `${wcl}/report/tables/${tableType}/${reportId}?start=${startTime}&end=${endTime}&${extraQuery}`
+  );
+  const data = await res.json();
+  return data;
 }
 
 export function summaryEntries(tables) {
@@ -103,6 +131,24 @@ export function summaryForWorldBuffs(tables) {
       return entries;
     }, {})
   );
+}
+
+export function summaryForDebuffs(abilityIds, allData, fights) {
+  const total = fights
+    .map(f => f["end_time"] - f["start_time"])
+    .reduce((t1, t2) => t1 + t2, 0);
+  const result = abilityIds.map((abilityId, idx) => ({
+    id: abilityId,
+    total:
+      allData[idx]["auras"]
+        .map(target =>
+          target.bands
+            .map(b => b["endTime"] - b["startTime"])
+            .reduce((t1, t2) => t1 + t2, 0)
+        )
+        .reduce((t1, t2) => t1 + t2, 0) / total
+  }));
+  return result;
 }
 
 export async function fetchOverallDamage(reportId, startTime, endTime) {

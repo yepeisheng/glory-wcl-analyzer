@@ -1,6 +1,7 @@
 import { FIGHT_NAME } from "../apis";
 
 const state = () => ({
+  rawReport: {},
   fights: {},
   friendlies: [],
   enemies: [],
@@ -10,19 +11,43 @@ const state = () => ({
 const getters = {};
 
 const mutations = {
-  setFriendlies(state, protectionWarriors) {
+  setFriendlies(
+    state,
+    { protectionWarriors, recklessCurse, elementalCurse, weaknessCurse }
+  ) {
     const protectionsIds = new Set(
       protectionWarriors
         .sort((e1, e2) => e2["total"] - e1["total"])
         .splice(0, 3)
         .map(e => e["id"])
     );
+
+    const recklessCurseId = recklessCurse
+      .sort((e1, e2) => e2["total"] - e1["total"])
+      .splice(0, 1)
+      .map(e => e["id"])[0];
+
+    const elementalCurseId = elementalCurse
+      .sort((e1, e2) => e2["total"] - e1["total"])
+      .splice(0, 1)
+      .map(e => e["id"])[0];
+
+    const weaknessCurseId = weaknessCurse
+      .sort((e1, e2) => e2["total"] - e1["total"])
+      .splice(0, 1)
+      .map(e => e["id"])[0];
+
     state.friendlies = state.friendlies.map(f => ({
       ...f,
-      type: protectionsIds.has(f["id"]) ? "Tank" : f["type"]
+      type: protectionsIds.has(f["id"]) ? "Tank" : f["type"],
+      isRecklessCurseWarlock: recklessCurseId === f["id"],
+      isElementalCurseWarlock: elementalCurseId === f["id"],
+      isWeaknessCurseWarlock: weaknessCurseId === f["id"],
+      isFaerieFire: f["type"] === "Druid"
     }));
   },
   setReport(state, report) {
+    state.rawReport = report;
     state.friendlies = [];
     state.fights = {};
     for (let i = 0; i < report.friendlies.length; i++) {
