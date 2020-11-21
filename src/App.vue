@@ -75,7 +75,6 @@ import { mapState, mapMutations } from "vuex";
 import {
   fetchReport,
   fetchTable,
-  fetchTable_ORIGIN,
   FIGHT_NAME,
   summaryEntries,
   summaryForDebuffs,
@@ -138,7 +137,7 @@ export default {
   },
   watch: {
     openSetting() {
-      // this.save();
+      this.save();
     }
   },
   methods: {

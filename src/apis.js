@@ -85,28 +85,6 @@ export async function fetchTable(
   ).map(e => ({ ...e, total: e[column] }));
 }
 
-export async function fetchTable_ORIGIN(
-  reportId,
-  tableType,
-  startTime,
-  endTime,
-  column,
-  options
-) {
-  let extraQuery = fixedQueries;
-  if (options["abilityId"]) {
-    extraQuery = `${extraQuery}&abilityid=${options["abilityId"]}`;
-  }
-  if (options["customQuery"]) {
-    extraQuery = `${extraQuery}&${options["customQuery"]}`;
-  }
-  const res = await fetch(
-    `${wcl}/report/tables/${tableType}/${reportId}?start=${startTime}&end=${endTime}&${extraQuery}`
-  );
-  const data = await res.json();
-  return data;
-}
-
 export function summaryEntries(tables) {
   return Object.values(
     [].concat(...tables).reduce((entries, entry) => {
