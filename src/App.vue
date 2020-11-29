@@ -32,12 +32,29 @@
         </v-row>
         <template v-if="!openSetting && scores.length > 0">
           <v-row>
-            <v-tabs v-model="selectedClassIndex">
-              <v-tabs-slider color="primary" />
-              <v-tab v-for="c in classes" :key="c.code">
-                <span :style="{ color: c.color }"> {{ c.display }} </span>
-              </v-tab>
-            </v-tabs>
+            <v-col align-self="center">
+              <v-tabs v-model="selectedClassIndex">
+                <v-tabs-slider color="primary" />
+                <v-tab v-for="c in classes" :key="c.code">
+                  <span :style="{ color: c.color }"> {{ c.display }} </span>
+                </v-tab>
+              </v-tabs>
+            </v-col>
+            <v-col class="col-2" align-self="center">
+              <v-select
+                v-model="downloadMode"
+                :items="downloadOptions"
+                item-text="display"
+                item-value="value"
+                label="下载模式"
+              />
+            </v-col>
+            <v-col class="col-1" align-self="center">
+              <v-btn @click="download">
+                <v-icon>mdi-download</v-icon>
+                XLSX
+              </v-btn>
+            </v-col>
           </v-row>
           <v-row>
             <v-col>
@@ -91,6 +108,7 @@ import ScoreTable from "./ScoreTable";
 import WclTable from "./WclTable";
 import classes from "./constants/Classes";
 import { filterEntriesById } from "./constants/TableConstants";
+import { downloadFile } from "./utils";
 
 export default {
   name: "App",
@@ -118,6 +136,12 @@ export default {
       title: "Classic WCL Analyzer",
       footer: "Powered by To God be the Glory",
       reportId: "AKpLva4YtC6ndmFx",
+      downloadOptions: [
+        { display: "每个职业一份文件", value: "filePerClass" },
+        { display: "每个职业一张表", value: "sheetPerClass" }
+        //{ display: "所有职业一张表", value: "singleSheet" }
+      ],
+      downloadMode: "singleSheet",
       selectedClassIndex: 0,
       classes,
       scores: []
@@ -129,7 +153,9 @@ export default {
       "friendlies",
       "fights",
       "tableEntries",
-      "rawReport"
+      "rawReport",
+      "reportName",
+      "reportDate"
     ]),
     selectedClass() {
       return this.classes[this.selectedClassIndex].code;
@@ -147,6 +173,15 @@ export default {
       "setFriendlies"
     ]),
     ...mapMutations("config", ["save"]),
+    download() {
+      downloadFile(
+        this.scores,
+        this.downloadMode,
+        this.reportId,
+        this.reportName,
+        this.reportDate
+      );
+    },
     openTablePanel(tableEntries) {
       this.openTable = true;
       this.table = tableEntries;
@@ -413,6 +448,7 @@ export default {
 
         return {
           classType,
+          className: classes.find(c => c.code === classType).display,
           scores
         };
       });

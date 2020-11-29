@@ -1,5 +1,5 @@
 export default [
-  { code: "Warrior", display: "战士", color: "#c69b6d" },
+  { code: "Warrior", display: "狂暴战", color: "#c69b6d" },
   { code: "Tank", display: "防御战士", color: "#c69b6d" },
   { code: "Shaman", display: "萨满祭司", color: "#2359ff" },
   { code: "Mage", display: "法师", color: "#68ccef" },

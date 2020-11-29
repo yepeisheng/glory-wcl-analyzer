@@ -1,13 +1,5 @@
 <template>
   <div>
-    <v-row>
-      <v-col>
-        <v-btn small @click="download">
-          <v-icon>mdi-download</v-icon>
-          XLSX
-        </v-btn>
-      </v-col>
-    </v-row>
     <template v-if="scores.length > 0">
       <v-data-table
         dense
@@ -70,6 +62,7 @@ import {
   VListItemContent,
   VListItemTitle
 } from "vuetify/lib";
+import { convertHeaders, convertItems } from "./utils";
 import XLSX from "xlsx";
 export default {
   name: "ScoreTable",
@@ -97,52 +90,10 @@ export default {
   },
   computed: {
     headers() {
-      if (this.scores.length > 0) {
-        const results = [
-          {
-            text: "名字",
-            align: "start",
-            sortable: false,
-            value: "name"
-          },
-          { text: "总分", value: "totalScore" }
-        ];
-        return results.concat(
-          ...this.scores[0].detailScore.map(group => {
-            const groupHead = {
-              text: group.displayName,
-              value: `group-${group.displayName}`,
-              weight: group.weight
-            };
-            const details = group.subGroups.map(sub => ({
-              text: sub.tableName,
-              value: `sub-${sub.tableName}`,
-              weight: sub.weight
-            }));
-            return [groupHead].concat(...details);
-          })
-        );
-      } else {
-        return [];
-      }
+      return convertHeaders(this.scores);
     },
     items() {
-      return this.scores.map(e => {
-        const summary = {
-          name: e.name,
-          totalScore: Math.round(e.totalScore * 100) / 100
-        };
-        e.detailScore.reduce((out, group) => {
-          out[`group-${group.displayName}`] =
-            Math.round(group.score * 100) / 100;
-          group.subGroups.reduce((subOut, sub) => {
-            subOut[`sub-${sub.tableName}`] = Math.round(sub.score * 100) / 100;
-            return subOut;
-          }, out);
-          return out;
-        }, summary);
-        return summary;
-      });
+      return convertItems(this.scores);
     }
   },
   methods: {

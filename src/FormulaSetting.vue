@@ -426,7 +426,7 @@ export default {
       this.subgroupEditor = false;
     },
     downloadFormulas() {
-      const filename = `哥老瑞考核公式.xlsx`;
+      const filename = `考核公式.xlsx`;
 
       const sheets = this.allFormulas.map(formulasForClass => {
         const c = classes.find(c => c.code === formulasForClass.classType);
@@ -445,7 +445,6 @@ export default {
           });
           return [groupHeader].concat(subgroups);
         });
-        console.log(groups);
         return {
           sheetName: c.display,
           sheet: XLSX.utils.aoa_to_sheet([].concat(...groups))

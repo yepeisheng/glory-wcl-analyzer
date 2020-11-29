@@ -33,7 +33,7 @@ export const MAGE_FORMULAS = {
           type: FORMULA_TYPE.RELATIVE_TO_TOP
         },
         {
-          tableIds: [{ id: "VIS-ICY-BOLT", amplifier: 1 }],
+          tableIds: [{ id: "VIS-ICY-BOLT", amplifier: 1 }, { id: "vis-shoot", amplifier: 1 }],
           weight: 0.1,
           type: FORMULA_TYPE.RELATIVE_TO_TOP
         }

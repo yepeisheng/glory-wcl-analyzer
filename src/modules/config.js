@@ -3,11 +3,11 @@ import { defaultFormulas } from "../constants/formulas";
 import { defaultTables } from "../constants/TableConstants";
 
 const state = () => ({
-  tables: localStorage.getItem("gloryWCLSetting-tables-2020-11-21")
-    ? JSON.parse(localStorage.getItem("gloryWCLSetting-tables-2020-11-21"))
+  tables: localStorage.getItem("gloryWCLSetting-tables-2020-11-29")
+    ? JSON.parse(localStorage.getItem("gloryWCLSetting-tables-2020-11-29"))
     : defaultTables.slice(),
-  allFormulas: localStorage.getItem("gloryWCLSetting-formulas-2020-11-21")
-    ? JSON.parse(localStorage.getItem("gloryWCLSetting-formulas-2020-11-21"))
+  allFormulas: localStorage.getItem("gloryWCLSetting-formulas-2020-11-29")
+    ? JSON.parse(localStorage.getItem("gloryWCLSetting-formulas-2020-11-29"))
     : defaultFormulas.slice()
 });
 
@@ -18,11 +18,11 @@ const actions = {};
 const mutations = {
   save(state) {
     localStorage.setItem(
-      "gloryWCLSetting-tables-2020-11-21",
+      "gloryWCLSetting-tables-2020-11-29",
       JSON.stringify(state.tables)
     );
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
@@ -30,14 +30,14 @@ const mutations = {
     const oldTableIndex = state.tables.findIndex(t => t.id === table.id);
     Vue.set(state.tables, oldTableIndex, table);
     localStorage.setItem(
-      "gloryWCLSetting-tables-2020-11-21",
+      "gloryWCLSetting-tables-2020-11-29",
       JSON.stringify(state.tables)
     );
   },
   insertTable(state, table) {
     state.tables.push(table);
     localStorage.setItem(
-      "gloryWCLSetting-tables-2020-11-21",
+      "gloryWCLSetting-tables-2020-11-29",
       JSON.stringify(state.tables)
     );
   },
@@ -45,14 +45,14 @@ const mutations = {
     const oldTableIndex = state.tables.findIndex(t => t.id === tableId);
     state.tables.splice(oldTableIndex, 1);
     localStorage.setItem(
-      "gloryWCLSetting-tables-2020-11-21",
+      "gloryWCLSetting-tables-2020-11-29",
       JSON.stringify(state.tables)
     );
   },
   resetTable(state) {
     state.tables = defaultTables.slice();
     localStorage.setItem(
-      "gloryWCLSetting-tables-2020-11-21",
+      "gloryWCLSetting-tables-2020-11-29",
       JSON.stringify(state.tables)
     );
   },
@@ -61,7 +61,7 @@ const mutations = {
       .find(f => f.classType === classType)
       ["formulas"].unshift(formula);
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
@@ -70,14 +70,14 @@ const mutations = {
       .find(f => f.classType === classType)
       ["formulas"].splice(formulaIdx, 1);
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
   resetFormula(state) {
     state.allFormulas = defaultFormulas.slice();
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
@@ -86,7 +86,7 @@ const mutations = {
       .find(f => f.classType === classType)
       ["formulas"][formulaIdx].subGroups.unshift(newSubgroup);
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
@@ -99,7 +99,7 @@ const mutations = {
       subgroup
     );
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       JSON.stringify(state.allFormulas)
     );
   },
@@ -108,7 +108,7 @@ const mutations = {
       .find(f => f.classType === classType)
       ["formulas"][formulaIdx].subGroups.splice(subgroupIdx, 1);
     localStorage.setItem(
-      "gloryWCLSetting-formulas-2020-11-21",
+      "gloryWCLSetting-formulas-2020-11-29",
       state.allFormulas
     );
   }

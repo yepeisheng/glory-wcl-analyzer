@@ -47,7 +47,8 @@ export const COLUMN = {
 export const COLUMN_TEXT = {
   total: "总数值",
   hitCount: "命中数",
-  totalUses: "BUFF数"
+  totalUses: "BUFF数",
+  totalUptime: "DEBUFF覆盖率"
 };
 
 export async function fetchReport(reportId) {

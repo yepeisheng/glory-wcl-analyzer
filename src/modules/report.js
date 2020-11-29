@@ -1,7 +1,10 @@
 import { FIGHT_NAME } from "../apis";
+import dayjs from "dayjs";
 
 const state = () => ({
   rawReport: {},
+  reportName: "",
+  reportDate: "",
   fights: {},
   friendlies: [],
   enemies: [],
@@ -48,6 +51,8 @@ const mutations = {
   },
   setReport(state, report) {
     state.rawReport = report;
+    state.reportName = report["title"];
+    state.reportDate = dayjs(report["start"]).format("YYYY年MM月DD日");
     state.friendlies = [];
     state.fights = {};
     for (let i = 0; i < report.friendlies.length; i++) {
